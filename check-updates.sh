@@ -33,9 +33,10 @@ fi
 echo ""
 echo -e "${BLUE}ℹ${NC} Checking CurseForge for latest version..."
 
-# Parse latest version from CurseForge
-LATEST=$(curl -s "https://www.curseforge.com/minecraft/modpacks/all-the-mods-11/files" | \
-    grep -oP 'ServerFiles-\K[\d.]+(?=\.zip)' | head -1)
+# Parse latest version from CurseForge API
+LATEST=$(curl -s "https://api.curseforge.com/v1/mods/916307/files?pageSize=50" \
+    -H "Accept: application/json" 2>/dev/null | \
+    grep -oP '"displayName":"ServerFiles-\K[\d.]+(?=\.zip)' | head -1 || echo "")
 
 if [ -z "$LATEST" ]; then
     echo -e "${RED}✗${NC} Could not fetch latest version from CurseForge"

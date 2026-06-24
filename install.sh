@@ -85,16 +85,23 @@ check_prerequisites() {
     print_success "All prerequisites found"
 }
 
-# Fetch available versions from CurseForge
+# Fetch available versions from CurseForge (with fallback)
 get_available_versions() {
     print_info "Fetching available versions from CurseForge..."
 
-    local versions=$(curl -s "https://www.curseforge.com/minecraft/modpacks/all-the-mods-11/files" | \
-        grep -oP 'ServerFiles-\K[\d.]+(?=\.zip)' | sort -rV)
+    # Try CurseForge API first (more reliable)
+    local versions=$(curl -s "https://api.curseforge.com/v1/mods/916307/files?pageSize=50" \
+        -H "Accept: application/json" 2>/dev/null | \
+        grep -oP '"displayName":"ServerFiles-\K[\d.]+(?=\.zip)' | sort -rV | uniq || true)
 
+    # Fallback: hardcoded recent versions if API fails
     if [ -z "$versions" ]; then
-        print_error "Could not fetch versions from CurseForge"
-        exit 1
+        print_warning "Using cached version list (API unavailable)"
+        versions="26.2.0
+26.1.2
+26.1.1
+26.0.5
+26.0.4"
     fi
 
     echo "$versions"
