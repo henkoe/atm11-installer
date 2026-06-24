@@ -86,34 +86,38 @@ check_prerequisites() {
 }
 
 # Fetch available versions from CurseForge (with fallback)
+# Returns format: "26.1.2|11-0.1.2" (serverfiles|modpack)
 get_available_versions() {
     print_info "Fetching available versions from CurseForge..."
 
     # Try CurseForge API first (more reliable)
+    # Extract both ServerFiles version and modpack version from displayName
     local versions=$(curl -s "https://api.curseforge.com/v1/mods/916307/files?pageSize=50" \
         -H "Accept: application/json" 2>/dev/null | \
-        grep -oP '"displayName":"ServerFiles-\K[\d.]+(?=\.zip)' | sort -rV | uniq || true)
+        grep -oP '"displayName":"All the Mods 11-\K[\d.]+-ServerFiles-[\d.]+(?=\.zip)' | \
+        awk -F'-ServerFiles-' '{print $2"|11-"$1}' | sort -rV | uniq || true)
 
-    # Fallback: hardcoded recent versions if API fails
+    # Fallback: hardcoded recent versions if API fails (serverfiles|modpack)
     if [ -z "$versions" ]; then
         print_warning "Using cached version list (API unavailable)"
-        versions="26.2.0
-26.1.2
-26.1.1
-26.0.5
-26.0.4"
+        versions="26.2.0|11-0.2.0
+26.1.2|11-0.1.2
+26.1.1|11-0.1.1
+26.0.5|11-0.0.24
+26.0.4|11-0.0.23"
     fi
 
     echo "$versions"
 }
 
 # Interactive version selection
+# Input format: "26.1.2|11-0.1.2" (serverfiles|modpack)
 select_version() {
     local versions=("$@")
     local count=${#versions[@]}
 
     if [ "$INTERACTIVE" != "true" ]; then
-        echo "${versions[0]}"
+        echo "${versions[0]%|*}"  # Return only serverfiles version
         return
     fi
 
@@ -123,10 +127,13 @@ select_version() {
 
     for i in "${!versions[@]}"; do
         local v=${versions[$i]}
+        local server_ver="${v%|*}"     # ServerFiles version
+        local modpack_ver="${v#*|}"    # Modpack version
+
         if [ $i -eq 0 ]; then
-            echo "  $(($i + 1))) $v ${YELLOW}(latest)${NC}"
+            echo "  $(($i + 1))) ServerFiles-$server_ver (Modpack $modpack_ver) ${YELLOW}(latest)${NC}"
         else
-            echo "  $(($i + 1))) $v"
+            echo "  $(($i + 1))) ServerFiles-$server_ver (Modpack $modpack_ver)"
         fi
     done
 
@@ -139,7 +146,7 @@ select_version() {
         exit 1
     fi
 
-    echo "${versions[$((choice - 1))]}"
+    echo "${versions[$((choice - 1))]%|*}"  # Return only serverfiles version
 }
 
 # Download file with progress

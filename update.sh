@@ -33,11 +33,19 @@ if [ -f "$VERSION_FILE" ]; then
     echo ""
 
     echo -e "${BLUE}ℹ${NC} Checking CurseForge for latest version..."
-    LATEST=$(curl -s "https://api.curseforge.com/v1/mods/916307/files?pageSize=50" \
+    LATEST_DATA=$(curl -s "https://api.curseforge.com/v1/mods/916307/files?pageSize=50" \
         -H "Accept: application/json" 2>/dev/null | \
-        grep -oP '"displayName":"ServerFiles-\K[\d.]+(?=\.zip)' | head -1 || echo "")
+        grep -oP '"displayName":"All the Mods 11-\K[\d.]+-ServerFiles-[\d.]+(?=\.zip)' | head -1 || echo "")
 
-    echo -e "${GREEN}✓${NC} Latest available:    v$LATEST"
+    if [ -n "$LATEST_DATA" ]; then
+        LATEST=$(echo "$LATEST_DATA" | awk -F'-ServerFiles-' '{print $2}')
+        MODPACK_LATEST=$(echo "$LATEST_DATA" | awk -F'-ServerFiles-' '{print $1}')
+    else
+        LATEST=""
+    fi
+
+    echo -e "${GREEN}✓${NC} Latest ServerFiles:  v$LATEST"
+    [ -n "$MODPACK_LATEST" ] && echo -e "${GREEN}✓${NC} Latest Modpack:      v11-$MODPACK_LATEST"
     echo ""
 
     if [ "$INSTALLED" = "$LATEST" ]; then
