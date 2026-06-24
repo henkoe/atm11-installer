@@ -5,50 +5,61 @@
 
 set -e
 
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVER_DIR="${SERVER_DIR:-.}"
 VERSION_FILE="$SERVER_DIR/version.txt"
 
-echo "=== ATM11 Server Updater ==="
-echo "Target directory: $SERVER_DIR"
+echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║     ATM11 Server Updater               ║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
 if [ ! -f "$SERVER_DIR/server.properties" ]; then
-    echo "Error: No server.properties found in $SERVER_DIR"
+    echo -e "${RED}✗ No server.properties found in $SERVER_DIR${NC}"
     echo "Run install.sh first."
     exit 1
 fi
 
-# Check for available updates first
+# Check for available updates
 if [ -f "$VERSION_FILE" ]; then
     INSTALLED=$(cat "$VERSION_FILE")
-    echo "Currently installed: v$INSTALLED"
+    echo -e "${GREEN}✓${NC} Currently installed: v$INSTALLED"
     echo ""
 
+    echo -e "${BLUE}ℹ${NC} Checking CurseForge for latest version..."
     LATEST=$(curl -s "https://www.curseforge.com/minecraft/modpacks/all-the-mods-11/files" | \
         grep -oP 'ServerFiles-\K[\d.]+(?=\.zip)' | head -1)
 
-    if [ "$INSTALLED" = "$LATEST" ]; then
-        echo "✓ Already on latest version (v$LATEST)"
-        exit 0
-    else
-        echo "Latest available:    v$LATEST"
-        echo "Proceeding with update..."
-    fi
+    echo -e "${GREEN}✓${NC} Latest available:    v$LATEST"
     echo ""
+
+    if [ "$INSTALLED" = "$LATEST" ]; then
+        echo -e "${GREEN}✓ Already on latest version${NC}"
+        exit 0
+    fi
 fi
 
-echo "Stopping server (if running)..."
-if command -v systemctl &> /dev/null && systemctl is-active --quiet minecraft-atm11; then
+# Stop server gracefully
+echo -e "${BLUE}ℹ${NC} Stopping server (if running)..."
+if command -v systemctl &> /dev/null && systemctl is-active --quiet minecraft-atm11 2>/dev/null; then
     systemctl stop minecraft-atm11
-    echo "Stopped via systemctl"
+    echo -e "${GREEN}✓${NC} Stopped via systemctl"
 fi
-
-# Use install.sh with the SERVER_DIR already set
-export SERVER_DIR="$SERVER_DIR"
-bash "$SCRIPT_DIR/install.sh"
 
 echo ""
-echo "=== Update Complete ==="
-echo "Ready to restart server"
+
+# Run installer in non-interactive mode with selected version
+export INTERACTIVE=false
+export SERVER_DIR="$SERVER_DIR"
+bash "$SCRIPT_DIR/install.sh" "$LATEST"
+
+echo ""
+echo -e "${GREEN}✓ Update Complete!${NC}"
+echo -e "${BLUE}ℹ${NC} Ready to restart server"
 echo ""

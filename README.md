@@ -1,15 +1,22 @@
 # ATM11 Server Installer
 
-Automated server installer for **All The Mods 11 (ATM11)** - configurable for Crafty Controller on Linux.
+Professional automated server installer for **All The Mods 11 (ATM11)** - optimized for Crafty Controller on Linux.
+
+**Best of both worlds:** FTB's polish + lightweight scriptable design
 
 ## Features
 
-- ✅ Automated download of latest ATM11 ServerFiles from CurseForge
-- ✅ Automatic backup of old configurations
-- ✅ Auto-accept EULA for headless setup
-- ✅ Startup script with configurable JVM args (NeoForge)
-- ✅ Manual trigger updates (no auto-updates)
-- ✅ Crafty Controller compatible
+- ✅ **Interactive version selection** with pretty UI
+- ✅ **Java 21+ validation** (prevents runtime errors)
+- ✅ **Colored output** with progress indicators
+- ✅ **Automated CurseForge downloads** with fallback
+- ✅ **Automatic backup** of old configurations
+- ✅ **Auto-accept EULA** for headless setup
+- ✅ **Startup script** with JVM optimization
+- ✅ **Version tracking** (installed vs latest)
+- ✅ **Manual update triggers** (no auto-updates)
+- ✅ **Crafty Controller integration**
+- ✅ **Scriptable/automation-friendly** (CLI flags)
 
 ## Requirements
 
@@ -17,7 +24,7 @@ Automated server installer for **All The Mods 11 (ATM11)** - configurable for Cr
 - `bash`
 - `curl`
 - `unzip`
-- Java 21+ (for running the server)
+- **Java 21+** (installer validates this)
 
 ## Quick Start
 
@@ -29,21 +36,49 @@ cd atm11-installer
 chmod +x *.sh
 ```
 
-### 2. Run the installer
+### 2. Run the interactive installer
 ```bash
 ./install.sh
 ```
 
-This will:
-- Download latest ATM11 ServerFiles
-- Extract to current directory
-- Backup old files to `backup-<timestamp>/`
-- Create `server.properties` with defaults
-- Auto-accept EULA (`eula.txt`)
-- Generate `start.sh` startup script
+**Interactive mode:**
+```
+╔════════════════════════════════════════╗
+║     ATM11 Server Installer             ║
+╚════════════════════════════════════════╝
+
+✓ All prerequisites found
+✓ Java 21.0.1 detected
+ℹ Fetching available versions from CurseForge...
+
+ℹ Available ATM11 versions:
+  1) 26.2.0 (latest)
+  2) 26.1.2
+  3) 26.1.1
+
+Select version (default 1): 1
+✓ Selected version: 26.2.0
+✓ Downloaded
+✓ Backed up to backup-1719244800/
+✓ Extracted
+✓ Created server.properties
+✓ Created start.sh
+✓ EULA accepted
+✓ Version saved
+
+✓ Installation Complete!
+```
+
+This automatically:
+- ✓ Validates Java 21+ installed
+- ✓ Lists all available versions
+- ✓ Downloads selected version
+- ✓ Backs up old files
+- ✓ Sets up server.properties
+- ✓ Auto-accepts EULA
+- ✓ Creates startup script
 
 ### 3. Customize configuration
-Edit `server.properties`:
 ```bash
 nano server.properties
 ```
@@ -61,15 +96,40 @@ Common settings:
 
 Or add to Crafty Controller and manage via web UI.
 
-## Checking Versions
+## Usage Modes
 
-### Check installed version (on running server)
+### Interactive (default)
+For manual setup with version selection:
 ```bash
-./get-version.sh
-# Output: Installed ATM11 version: v26.1.2
+./install.sh
 ```
 
-Or simply:
+### Non-interactive (automation/CI)
+For scripting or CI/CD pipelines:
+```bash
+INTERACTIVE=false VERSION_SELECT=26.1.2 ./install.sh
+```
+
+Or specify version as argument:
+```bash
+./install.sh 26.1.2
+```
+
+### Simple wrapper
+One-command install with auto-detection:
+```bash
+./install-simple.sh
+```
+
+## Version Management
+
+### Check installed version
+```bash
+./get-version.sh
+# ✓ Installed ATM11 version: v26.1.2
+```
+
+Or view the file directly:
 ```bash
 cat version.txt
 ```
@@ -79,26 +139,34 @@ cat version.txt
 ./check-updates.sh
 ```
 
-This shows:
-- Currently installed version
-- Latest available version on CurseForge
-- Whether you need to update
-
-### Compare versions
-```bash
-INSTALLED=$(cat version.txt)
-LATEST=$(curl -s "https://www.curseforge.com/minecraft/modpacks/all-the-mods-11/files" | \
-  grep -oP 'ServerFiles-\K[\d.]+(?=\.zip)' | head -1)
-
-echo "Installed: $INSTALLED"
-echo "Latest:    $LATEST"
-
-if [ "$INSTALLED" = "$LATEST" ]; then
-  echo "✓ Up to date"
-else
-  echo "⚠ Update available"
-fi
+Output:
 ```
+╔════════════════════════════════════════╗
+║     ATM11 Update Checker               ║
+╚════════════════════════════════════════╝
+
+✓ Currently installed: v26.1.2
+ℹ Checking CurseForge for latest version...
+✓ Latest available:    v26.2.0
+
+⚠ Update available!
+
+To update to v26.2.0, run:
+  ./update.sh
+```
+
+### Update to latest version
+```bash
+./update.sh
+```
+
+Automatically:
+- ✓ Shows current vs latest version
+- ✓ Skips if already up-to-date
+- ✓ Stops server gracefully (if using systemd)
+- ✓ Downloads new version
+- ✓ Backs up old files
+- ✓ Updates version.txt
 
 ## Updating
 

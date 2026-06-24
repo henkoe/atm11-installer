@@ -5,45 +5,54 @@
 
 set -e
 
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
 SERVER_DIR="${SERVER_DIR:-.}"
 VERSION_FILE="$SERVER_DIR/version.txt"
 
-echo "=== ATM11 Update Checker ==="
+echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║     ATM11 Update Checker               ║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
 # Show installed version
 if [ -f "$VERSION_FILE" ]; then
     INSTALLED=$(cat "$VERSION_FILE")
-    echo "Currently installed: v$INSTALLED"
+    echo -e "${GREEN}✓${NC} Currently installed: v$INSTALLED"
 else
-    echo "No version file found - server may not be installed yet"
+    echo -e "${RED}✗${NC} No version file found - server may not be installed yet"
     echo "Run ./install.sh first"
     exit 1
 fi
 
 echo ""
-echo "Checking CurseForge for latest version..."
+echo -e "${BLUE}ℹ${NC} Checking CurseForge for latest version..."
 
 # Parse latest version from CurseForge
 LATEST=$(curl -s "https://www.curseforge.com/minecraft/modpacks/all-the-mods-11/files" | \
     grep -oP 'ServerFiles-\K[\d.]+(?=\.zip)' | head -1)
 
 if [ -z "$LATEST" ]; then
-    echo "Error: Could not fetch latest version from CurseForge"
+    echo -e "${RED}✗${NC} Could not fetch latest version from CurseForge"
     exit 1
 fi
 
-echo "Latest available:    v$LATEST"
+echo -e "${GREEN}✓${NC} Latest available:    v$LATEST"
 echo ""
 
 if [ "$INSTALLED" = "$LATEST" ]; then
-    echo "✓ You are up to date!"
+    echo -e "${GREEN}✓ You are up to date!${NC}"
     exit 0
 else
-    echo "⚠ Update available!"
+    echo -e "${YELLOW}⚠ Update available!${NC}"
     echo ""
     echo "To update to v$LATEST, run:"
-    echo "  ./update.sh"
+    echo "  ${BLUE}./update.sh${NC}"
     echo ""
     exit 1
 fi
