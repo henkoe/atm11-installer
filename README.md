@@ -24,8 +24,9 @@ Automated server installer for **All The Mods 11 (ATM11)** - configurable for Cr
 ### 1. Clone/Download this installer
 ```bash
 cd /path/to/your/servers
-git clone <repo-url> atm11-installer
+git clone https://github.com/henkoe/atm11-installer.git
 cd atm11-installer
+chmod +x *.sh
 ```
 
 ### 2. Run the installer
@@ -60,17 +61,44 @@ Common settings:
 
 Or add to Crafty Controller and manage via web UI.
 
-## Checking for Updates
+## Checking Versions
 
-To see if updates are available:
+### Check installed version (on running server)
+```bash
+./get-version.sh
+# Output: Installed ATM11 version: v26.1.2
+```
+
+Or simply:
+```bash
+cat version.txt
+```
+
+### Check for available updates
 ```bash
 ./check-updates.sh
 ```
 
 This shows:
 - Currently installed version
-- Latest available version
+- Latest available version on CurseForge
 - Whether you need to update
+
+### Compare versions
+```bash
+INSTALLED=$(cat version.txt)
+LATEST=$(curl -s "https://www.curseforge.com/minecraft/modpacks/all-the-mods-11/files" | \
+  grep -oP 'ServerFiles-\K[\d.]+(?=\.zip)' | head -1)
+
+echo "Installed: $INSTALLED"
+echo "Latest:    $LATEST"
+
+if [ "$INSTALLED" = "$LATEST" ]; then
+  echo "✓ Up to date"
+else
+  echo "⚠ Update available"
+fi
+```
 
 ## Updating
 
