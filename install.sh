@@ -93,6 +93,10 @@ chmod +x "$SERVER_DIR/start.sh"
 # Create eula.txt (auto-accept)
 echo "eula=true" > "$SERVER_DIR/eula.txt"
 
+# Store version for update checking
+VERSION=$(echo "$LATEST_FILE" | grep -oP 'ServerFiles-\K[\d.]+(?=\.zip)' || echo "unknown")
+echo "$VERSION" > "$SERVER_DIR/version.txt"
+
 echo ""
 echo "=== Installation Complete ==="
 echo "Server installed to: $SERVER_DIR"

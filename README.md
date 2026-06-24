@@ -60,6 +60,18 @@ Common settings:
 
 Or add to Crafty Controller and manage via web UI.
 
+## Checking for Updates
+
+To see if updates are available:
+```bash
+./check-updates.sh
+```
+
+This shows:
+- Currently installed version
+- Latest available version
+- Whether you need to update
+
 ## Updating
 
 To update to a new ATM11 version:
@@ -68,10 +80,13 @@ To update to a new ATM11 version:
 ```
 
 This will:
+- Show currently installed vs latest version
+- Skip update if already on latest
 - Backup current world/configs
 - Download latest ServerFiles
 - Extract new mods/configs
 - Preserve `server.properties`
+- Update version file
 
 ## Integration with Crafty Controller
 
@@ -141,10 +156,12 @@ After installation:
 ├── world/                 # Server world save
 ├── logs/                  # Server logs
 ├── server.properties      # Server configuration (preserved on update)
+├── version.txt           # Currently installed version (auto-updated)
 ├── eula.txt              # EULA acceptance
 ├── start.sh              # Startup script
 ├── install.sh            # This installer
 ├── update.sh             # Update script
+├── check-updates.sh      # Check for available updates
 └── backup-<timestamp>/   # Backups from previous versions
 ```
 
