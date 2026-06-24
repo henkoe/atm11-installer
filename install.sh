@@ -205,10 +205,33 @@ main() {
     # Create server directory
     mkdir -p "$SERVER_DIR"
 
-    # Download
+    # Download via CurseForge API (direct links)
     LATEST_FILE="ServerFiles-${selected_version}.zip"
-    DOWNLOAD_LINK="https://www.curseforge.com/minecraft/modpacks/all-the-mods-11/download/$LATEST_FILE"
-    download_file "$DOWNLOAD_LINK" "$TEMP_DIR/$LATEST_FILE"
+
+    # Get the actual download link from CurseForge API
+    print_info "Getting download link from CurseForge..."
+    DOWNLOAD_ID=$(curl -s "https://api.curseforge.com/v1/mods/916307/files?pageSize=50&sortOrder=desc" \
+        -H "Accept: application/json" 2>/dev/null | \
+        grep -A5 "ServerFiles-${selected_version}" | grep -oP '"id":\K[0-9]+' | head -1)
+
+    if [ -z "$DOWNLOAD_ID" ]; then
+        print_error "Could not find download ID for version $selected_version"
+        exit 1
+    fi
+
+    # CurseForge API download endpoint (requires User-Agent)
+    DOWNLOAD_LINK="https://api.curseforge.com/v1/mods/916307/files/$DOWNLOAD_ID/download-url"
+
+    # Get actual download URL from API
+    ACTUAL_DOWNLOAD_URL=$(curl -s "$DOWNLOAD_LINK" -H "Accept: application/json" 2>/dev/null | \
+        grep -oP '"data":"\K[^"]+' | head -1)
+
+    if [ -z "$ACTUAL_DOWNLOAD_URL" ]; then
+        print_warning "Could not get direct download URL, using CurseForge forge CDN..."
+        ACTUAL_DOWNLOAD_URL="https://mediafiles.forgecdn.net/files/$(echo $DOWNLOAD_ID | cut -c1-4)/$(echo $DOWNLOAD_ID | cut -c5-)/ServerFiles-${selected_version}.zip"
+    fi
+
+    download_file "$ACTUAL_DOWNLOAD_URL" "$TEMP_DIR/$LATEST_FILE"
 
     # Backup old files
     if [ -d "$SERVER_DIR/mods" ] || [ -d "$SERVER_DIR/config" ]; then
